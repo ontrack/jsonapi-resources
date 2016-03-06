@@ -22,6 +22,7 @@ module JSONAPI
                 :top_level_meta_include_record_count,
                 :top_level_meta_record_count_key,
                 :exception_class_whitelist,
+                :include_relationship_links,
                 :always_include_to_one_linkage_data,
                 :always_include_to_many_linkage_data
 
@@ -72,6 +73,7 @@ module JSONAPI
       # Resource Linkage
       # Controls the serialization of resource linkage for non compound documents
       # NOTE: always_include_to_many_linkage_data is not currently implemented
+      self.include_relationship_links = true
       self.always_include_to_one_linkage_data = false
       self.always_include_to_many_linkage_data = false
     end
@@ -116,6 +118,8 @@ module JSONAPI
     attr_writer :top_level_meta_record_count_key
 
     attr_writer :exception_class_whitelist
+
+    attr_writer :include_relationship_links
 
     attr_writer :always_include_to_one_linkage_data
 
