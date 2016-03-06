@@ -23,6 +23,7 @@ module JSONAPI
                 :top_level_meta_page_count_key,
                 :allow_transactions,
                 :exception_class_whitelist,
+                :always_include_to_one_links,
                 :always_include_to_one_linkage_data,
                 :always_include_to_many_linkage_data,
                 :cache_formatters,
@@ -75,6 +76,7 @@ module JSONAPI
       # Resource Linkage
       # Controls the serialization of resource linkage for non compound documents
       # NOTE: always_include_to_many_linkage_data is not currently implemented
+      self.always_include_to_one_links = true
       self.always_include_to_one_linkage_data = false
       self.always_include_to_many_linkage_data = false
 
@@ -186,6 +188,8 @@ module JSONAPI
     attr_writer :allow_transactions
 
     attr_writer :exception_class_whitelist
+
+    attr_writer :always_include_to_one_links
 
     attr_writer :always_include_to_one_linkage_data
 

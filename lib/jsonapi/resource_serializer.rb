@@ -24,6 +24,8 @@ module JSONAPI
       @key_formatter          = options.fetch(:key_formatter, JSONAPI.configuration.key_formatter)
       @id_formatter           = ValueFormatter.value_formatter_for(:id)
       @link_builder           = generate_link_builder(primary_resource_klass, options)
+      @always_include_to_one_links = options.fetch(:always_include_to_one_links,
+                                                  JSONAPI.configuration.always_include_to_one_links)
       @always_include_to_one_linkage_data = options.fetch(:always_include_to_one_linkage_data,
                                                           JSONAPI.configuration.always_include_to_one_linkage_data)
       @always_include_to_many_linkage_data = options.fetch(:always_include_to_many_linkage_data,
@@ -71,13 +73,16 @@ module JSONAPI
         data = to_many_linkage(source, requested_relationship)
       end
 
-      {
-        links: {
+      object_hash = { data: data }
+
+      if requested_relationship.is_a?(JSONAPI::Relationship::ToMany) || @always_include_to_one_links
+        object_hash[:links] = {
           self: self_link(source, requested_relationship),
           related: related_link(source, requested_relationship)
-        },
-        data: data
-      }
+        }
+      end
+
+      object_hash
     end
 
     def query_link(query_params)
@@ -270,9 +275,13 @@ module JSONAPI
     def link_object_to_one(source, relationship, include_linkage)
       include_linkage = include_linkage | @always_include_to_one_linkage_data | relationship.always_include_linkage_data
       link_object_hash = {}
-      link_object_hash[:links] = {}
-      link_object_hash[:links][:self] = self_link(source, relationship)
-      link_object_hash[:links][:related] = related_link(source, relationship)
+
+      if @always_include_to_one_links || !include_linkage
+        link_object_hash[:links] = {}
+        link_object_hash[:links][:self] = self_link(source, relationship)
+        link_object_hash[:links][:related] = related_link(source, relationship)
+      end
+
       link_object_hash[:data] = to_one_linkage(source, relationship) if include_linkage
       link_object_hash
     end
