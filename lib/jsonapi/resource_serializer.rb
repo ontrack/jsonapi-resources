@@ -67,7 +67,7 @@ module JSONAPI
 
       object_hash = { data: data }
 
-      if @include_relationship_links
+      if requested_relationship.is_a?(JSONAPI::Relationship::ToMany) || @include_relationship_links
         object_hash[:links] = {
           self: self_link(source, requested_relationship),
           related: related_link(source, requested_relationship)
@@ -290,12 +290,9 @@ module JSONAPI
     def link_object_to_many(source, relationship, include_linkage)
       include_linkage = include_linkage | relationship.always_include_linkage_data
       link_object_hash = {}
-
-      if @include_relationship_links
-        link_object_hash[:links] = {}
-        link_object_hash[:links][:self] = self_link(source, relationship)
-        link_object_hash[:links][:related] = related_link(source, relationship)
-      end
+      link_object_hash[:links] = {}
+      link_object_hash[:links][:self] = self_link(source, relationship)
+      link_object_hash[:links][:related] = related_link(source, relationship)
 
       link_object_hash[:data] = to_many_linkage(source, relationship) if include_linkage
       link_object_hash
