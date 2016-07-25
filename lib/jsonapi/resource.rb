@@ -790,7 +790,7 @@ module JSONAPI
       def verify_filter(filter, raw, context = nil)
         filter_values = []
         if raw.present?
-          filter_values += raw.is_a?(String) ? CSV.parse_line(raw) : [raw]
+          filter_values += raw.is_a?(String) ? parse_filter(raw) : [raw]
         end
 
         strategy = _allowed_filters.fetch(filter, Hash.new)[:verify]
@@ -809,6 +809,12 @@ module JSONAPI
             verify_custom_filter(filter, filter_values, context)
           end
         end
+      end
+
+      def parse_filter(raw)
+        CSV.parse_line(raw)
+      rescue CSV::MalformedCSVError
+        [raw]
       end
 
       def key_type(key_type)
