@@ -213,7 +213,8 @@ module JSONAPI
           resources = (include_linkage || include_linked_children) && [source.public_send(name)].flatten.compact
 
           if field_set.include?(name)
-            hash[format_key(name)] = link_object(source, relationship, include_linkage)
+            object_hash = link_object(source, relationship, include_linkage)
+            hash[format_key(name)] = object_hash if object_hash && !object_hash.empty?
           end
 
           # If the object has been serialized once it will be in the related objects list,
