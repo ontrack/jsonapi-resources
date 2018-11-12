@@ -51,13 +51,14 @@ module JSONAPI
       @included_objects.each_value do |objects|
         objects.each_value do |object|
           if object[:primary]
-            primary_objects.push(object[:object_hash])
+            primary_objects[object[:primary]] = object[:object_hash]
           else
             included_objects.push(object[:object_hash])
           end
         end
       end
 
+      primary_objects.compact!
       primary_hash = { data: is_resource_collection ? primary_objects : primary_objects[0] }
 
       primary_hash[:included] = included_objects if included_objects.size > 0
@@ -101,15 +102,15 @@ module JSONAPI
     # requested includes. Fields are controlled fields option for each resource type, such
     # as fields: { people: [:id, :email, :comments], posts: [:id, :title, :author], comments: [:id, :body, :post]}
     # The fields options controls both fields and included links references.
-    def process_primary(source, include_directives)
+    def process_primary(source, include_directives, idx = 0)
       if source.respond_to?(:to_ary)
-        source.each { |resource| process_primary(resource, include_directives) }
+        source.each_with_index { |resource, idx| process_primary(resource, include_directives, idx) }
       else
         return {} if source.nil?
 
         resource = source
         id = resource.id
-        add_included_object(id, object_hash(source, include_directives), true)
+        add_included_object(id, object_hash(source, include_directives), idx)
       end
     end
 
@@ -346,22 +347,22 @@ module JSONAPI
     end
 
     # Sets that an object should be included in the primary document of the response.
-    def set_primary(type, id)
+    def set_primary(type, id, idx)
       type = format_key(type)
-      @included_objects[type][id][:primary] = true
+      @included_objects[type][id][:primary] = idx
     end
 
     # Collects the hashes for all objects processed by the serializer
-    def add_included_object(id, object_hash, primary = false)
+    def add_included_object(id, object_hash, primary_idx = false)
       type = object_hash['type']
 
       @included_objects[type] = {} unless @included_objects.key?(type)
 
       if already_serialized?(type, id)
         @included_objects[type][id][:object_hash].deep_merge!(object_hash)
-        set_primary(type, id) if primary
+        set_primary(type, id, primary_idx) if primary_idx
       else
-        @included_objects[type].store(id, primary: primary, object_hash: object_hash)
+        @included_objects[type].store(id, primary: primary_idx, object_hash: object_hash)
       end
     end
 
